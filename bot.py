@@ -7,8 +7,8 @@ from threading import Thread
 import time
 import random
 
-# ⚠️ Paste NEW token from BotFather
-TOKEN = "8749261680:AAFdobF_vYpPDI_4M6Aq2wXco2-Zxuw_cZs"
+# ✅ TOKEN from environment (Render)
+TOKEN = os.getenv("TOKEN")
 
 DATA_FILE = "data.json"
 users = {}
@@ -29,7 +29,7 @@ def save_data():
     with open(DATA_FILE, "w") as f:
         json.dump(users, f)
 
-# ---------- WEB SERVER ----------
+# ---------- WEB SERVER (for Render ping) ----------
 app_web = Flask('')
 
 @app_web.route('/')
@@ -84,16 +84,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "last_msg_time": 0
         }
 
+    # Anti-spam
     if now - users[uid]["last_msg_time"] < 3:
         return
 
     users[uid]["last_msg_time"] = now
 
-    # XP
+    # XP system
     xp_gain = 5 if len(text.split()) > 15 else 2
     users[uid]["xp"] += xp_gain
 
-    # STREAK FIX
+    # 🔥 STREAK LOGIC (correct)
     diff = now - users[uid]["last_active"]
     if diff > 172800:
         users[uid]["streak"] = 1
@@ -102,7 +103,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     users[uid]["last_active"] = now
 
-    # Visual feedback
+    # Visual feedback (gamification)
     if random.random() < 0.3:
         await update.message.reply_text(f"+{xp_gain} XP | {get_rank(users[uid]['xp'])}")
 
@@ -206,6 +207,10 @@ async def inactivity_check(context: ContextTypes.DEFAULT_TYPE):
 
 # ---------- MAIN ----------
 def main():
+    if not TOKEN:
+        print("❌ TOKEN not found. Set environment variable.")
+        return
+
     app = ApplicationBuilder().token(TOKEN).build()
 
     load_data()
