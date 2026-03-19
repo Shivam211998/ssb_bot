@@ -227,7 +227,13 @@ def main():
 
     keep_alive()
 
+    if app.job_queue:
     app.job_queue.run_repeating(inactivity_check, interval=3600)
+
+    def main():
+    print("TOKEN:", TOKEN)
+
+    app = ApplicationBuilder().token(TOKEN).build()
 
     print("✅ Bot running...")
 
